@@ -12,7 +12,7 @@
         android:layout_gravity="center_vertical"
         android:layout_margin="5dp"
         android:scaleType="centerCrop"
-        android:src="@android:drawable/btn_star" />
+        android:src="@drawable/no_album_art" />
 
     <LinearLayout
         android:layout_width="wrap_content"

@@ -12,13 +12,15 @@
         android:layout_gravity="center_vertical"
         android:layout_margin="5dp"
         android:scaleType="centerCrop"
-        android:src="@android:drawable/btn_star" />
+        android:src="@drawable/no_album_art" />
 
     <TextView
         android:id="@android:id/text1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@android:color/black"
         tools:text="Coldplay &amp; Rihanna" />
 
 </LinearLayout>
