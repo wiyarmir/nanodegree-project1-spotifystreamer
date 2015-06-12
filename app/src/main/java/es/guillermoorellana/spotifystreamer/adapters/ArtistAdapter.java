@@ -1,7 +1,6 @@
 package es.guillermoorellana.spotifystreamer.adapters;
 
 import android.content.Context;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,8 +9,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
-
-import org.w3c.dom.Text;
 
 import es.guillermoorellana.spotifystreamer.R;
 import kaaes.spotify.webapi.android.models.Artist;
@@ -59,10 +56,11 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
             if (artist.images.size() > 0) {
                 Picasso.with(getContext())
                         .load(artist.images.get(0).url)
+                        .placeholder(R.drawable.no_album_art)
                         .resizeDimen(R.dimen.album_cover_side, R.dimen.album_cover_side)
                         .into(viewHolder.icon);
             } else {
-                viewHolder.icon.setImageBitmap(null);
+                viewHolder.icon.setImageResource(R.drawable.no_album_art);
             }
         }
 

@@ -74,20 +74,26 @@ public class ArtistTopActivity extends AppCompatActivity {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            setListAdapter(
-                                    new TrackAdapter(
-                                            getActivity(),
-                                            R.layout.listitem_track,
-                                            tracks.tracks
-                                    )
-                            );
+                            if (tracks.tracks.size() > 0) {
+                                setListAdapter(
+                                        new TrackAdapter(
+                                                getActivity(),
+                                                R.layout.listitem_track,
+                                                tracks.tracks
+                                        )
+                                );
+                            } else {
+                                Toast.makeText(getActivity(), "Can't find any top tracks for this" +
+                                        " artist. Sorry!", Toast.LENGTH_SHORT).show();
+                                getActivity().finish();
+                            }
                         }
                     });
                 }
 
                 @Override
                 public void failure(RetrofitError error) {
-
+                    getActivity().finish();
                 }
             });
         }

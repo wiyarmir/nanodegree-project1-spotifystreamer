@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import es.guillermoorellana.spotifystreamer.adapters.ArtistAdapter;
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -25,6 +26,7 @@ import retrofit.client.Response;
 public class MainActivity extends AppCompatActivity {
 
     public static final String KEY_ARTIST_ID = "artist_id";
+    private static final String STATE_SEARCHBAR_TEXT = "inputText";
     private ListView results;
     private ArtistAdapter adapter;
     private EditText input;
@@ -56,20 +58,29 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() == 0) {
+            public void onTextChanged(final CharSequence searchString, int start, int before, int count) {
+                if (searchString.length() == 0) {
                     adapter.clear();
                     return;
                 }
                 SpotifyService svc = api.getService();
-                svc.searchArtists(s.toString(), new Callback<ArtistsPager>() {
+
+                svc.searchArtists(searchString.toString(), new Callback<ArtistsPager>() {
                     @Override
                     public void success(final ArtistsPager artistsPager, Response response) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 adapter.clear();
-                                adapter.addAll(artistsPager.artists.items);
+                                if (artistsPager.artists.items.size() > 0) {
+                                    adapter.addAll(artistsPager.artists.items);
+                                } else {
+                                    Toast.makeText(
+                                            MainActivity.this,
+                                            String.format("Can't find the artist '%s', please try something different!", searchString),
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+                                }
                             }
                         });
                     }
@@ -112,4 +123,25 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        restoreStateFromBundle(savedInstanceState);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putAll(getStateBundle());
+        super.onSaveInstanceState(outState);
+    }
+
+    private Bundle getStateBundle() {
+        Bundle bundle = new Bundle();
+        bundle.putString(STATE_SEARCHBAR_TEXT, input.getText().toString());
+        return bundle;
+    }
+
+    private void restoreStateFromBundle(Bundle savedInstanceState) {
+        input.setText(savedInstanceState.getString(STATE_SEARCHBAR_TEXT, ""));
+    }
 }

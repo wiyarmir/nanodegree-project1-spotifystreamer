@@ -59,10 +59,11 @@ public class TrackAdapter extends ArrayAdapter<Track> {
             if (track.album.images.size() > 0) {
                 Picasso.with(getContext())
                         .load(track.album.images.get(0).url)
+                        .placeholder(R.drawable.no_album_art)
                         .resizeDimen(R.dimen.album_cover_side, R.dimen.album_cover_side)
                         .into(viewHolder.icon);
             } else {
-                viewHolder.icon.setImageBitmap(null);
+                viewHolder.icon.setImageResource(R.drawable.no_album_art);
             }
         }
 
