@@ -14,6 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import es.guillermoorellana.spotifystreamer.adapters.TrackAdapter;
+import es.guillermoorellana.spotifystreamer.models.Track;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Tracks;
@@ -79,7 +80,7 @@ public class ArtistTopActivity extends AppCompatActivity {
                                         new TrackAdapter(
                                                 getActivity(),
                                                 R.layout.listitem_track,
-                                                tracks.tracks
+                                                Track.fromSpotifyList(tracks.tracks)
                                         )
                                 );
                             } else {

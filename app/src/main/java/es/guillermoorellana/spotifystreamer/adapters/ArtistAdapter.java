@@ -11,7 +11,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import es.guillermoorellana.spotifystreamer.R;
-import kaaes.spotify.webapi.android.models.Artist;
+import es.guillermoorellana.spotifystreamer.models.Artist;
 
 /**
  * Created by wiyarmir on 07/06/2015.

@@ -14,9 +14,9 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import es.guillermoorellana.spotifystreamer.adapters.ArtistAdapter;
+import es.guillermoorellana.spotifystreamer.models.Artist;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import retrofit.Callback;
 import retrofit.RetrofitError;
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 adapter.clear();
                                 if (artistsPager.artists.items.size() > 0) {
-                                    adapter.addAll(artistsPager.artists.items);
+                                    adapter.addAll(Artist.fromSpotifyList(artistsPager.artists.items));
                                 } else {
                                     Toast.makeText(
                                             MainActivity.this,

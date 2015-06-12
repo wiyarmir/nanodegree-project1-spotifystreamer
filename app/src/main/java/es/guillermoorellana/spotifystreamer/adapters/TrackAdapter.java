@@ -13,8 +13,7 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 import es.guillermoorellana.spotifystreamer.R;
-import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.Track;
+import es.guillermoorellana.spotifystreamer.models.Track;
 
 /**
  * Created by wiyarmir on 08/06/2015.
