@@ -4,11 +4,14 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import es.guillermoorellana.spotifystreamer.R;
 import es.guillermoorellana.spotifystreamer.models.Artist;
@@ -18,20 +21,30 @@ import es.guillermoorellana.spotifystreamer.models.Artist;
  */
 
 
-public class ArtistAdapter extends ArrayAdapter<Artist> {
-
-
-    static class ViewHolder {
-        ImageView icon;
-        TextView text1;
-    }
-
+public class ArtistAdapter extends BaseAdapter {
+    private final Context context;
     int resource;
+    List<Artist> items;
 
     public ArtistAdapter(Context context, int resource) {
-        super(context, resource, android.R.id.text1);
+        this.context = context;
         this.resource = resource;
+        items = new ArrayList<>();
+    }
 
+    @Override
+    public int getCount() {
+        return items.size();
+    }
+
+    @Override
+    public Artist getItem(int position) {
+        return items.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
     }
 
     @Override
@@ -66,4 +79,27 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
 
         return convertView;
     }
+
+    public Context getContext() {
+        return context;
+    }
+
+    public List<Artist> getValues() {
+        return items;
+    }
+
+    public void clear() {
+        items.clear();
+        notifyDataSetChanged();
+    }
+
+    public void addAll(List<Artist> artists) {
+        items.addAll(artists);
+    }
+
+    static class ViewHolder {
+        ImageView icon;
+        TextView text1;
+    }
+
 }

@@ -12,7 +12,7 @@ public class Artist implements Serializable {
     public List<Image> images;
     public String id;
 
-    static Artist fromSpotifyList(kaaes.spotify.webapi.android.models.Artist artist) {
+    static Artist fromObjectArray(kaaes.spotify.webapi.android.models.Artist artist) {
         Artist result = new Artist();
 
         result.id = artist.id;
@@ -22,11 +22,19 @@ public class Artist implements Serializable {
         return result;
     }
 
-    public static List<Artist> fromSpotifyList(List<kaaes.spotify.webapi.android.models.Artist>
+    public static List<Artist> fromObjectArray(List<kaaes.spotify.webapi.android.models.Artist>
                                                        artistList) {
         List<Artist> result = new ArrayList<>(artistList.size());
         for (kaaes.spotify.webapi.android.models.Artist externalArtist : artistList) {
-            result.add(Artist.fromSpotifyList(externalArtist));
+            result.add(Artist.fromObjectArray(externalArtist));
+        }
+        return result;
+    }
+
+    public static List<Artist> fromObjectArray(Object[] array) {
+        List<Artist> result = new ArrayList<>(array.length);
+        for (Object item : array) {
+            result.add((Artist) item);
         }
         return result;
     }
