@@ -14,6 +14,8 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import es.guillermoorellana.spotifystreamer.R;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.Track;
@@ -40,9 +42,13 @@ public class TrackAdapter extends BaseAdapter {
     }
 
     static class ViewHolder {
-        ImageView icon;
-        TextView text1;
-        TextView text2;
+        @InjectView(android.R.id.icon) ImageView icon;
+        @InjectView(android.R.id.text1) TextView text1;
+        @InjectView(android.R.id.text2) TextView text2;
+
+        public ViewHolder(View view) {
+            ButterKnife.inject(this, view);
+        }
     }
 
     @Override
@@ -65,12 +71,7 @@ public class TrackAdapter extends BaseAdapter {
         ViewHolder viewHolder;
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(resource, parent, false);
-
-            viewHolder = new ViewHolder();
-            viewHolder.icon = (ImageView) convertView.findViewById(android.R.id.icon);
-            viewHolder.text1 = (TextView) convertView.findViewById(android.R.id.text1);
-            viewHolder.text2 = (TextView) convertView.findViewById(android.R.id.text2);
-
+            viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();

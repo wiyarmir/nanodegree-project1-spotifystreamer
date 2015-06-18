@@ -14,6 +14,8 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import es.guillermoorellana.spotifystreamer.R;
 import kaaes.spotify.webapi.android.models.Artist;
 
@@ -53,11 +55,7 @@ public class ArtistAdapter extends BaseAdapter {
         ViewHolder viewHolder;
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(resource, parent, false);
-
-            viewHolder = new ViewHolder();
-            viewHolder.icon = (ImageView) convertView.findViewById(android.R.id.icon);
-            viewHolder.text1 = (TextView) convertView.findViewById(android.R.id.text1);
-
+            viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
@@ -106,8 +104,12 @@ public class ArtistAdapter extends BaseAdapter {
     }
 
     static class ViewHolder {
-        ImageView icon;
-        TextView text1;
+        @InjectView(android.R.id.icon) ImageView icon;
+        @InjectView(android.R.id.text1) TextView text1;
+
+        public ViewHolder(View view) {
+            ButterKnife.inject(this, view);
+        }
     }
 
 }
