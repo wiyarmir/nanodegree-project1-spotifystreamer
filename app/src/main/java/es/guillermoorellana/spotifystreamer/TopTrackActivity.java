@@ -39,7 +39,10 @@ public class TopTrackActivity extends AppCompatActivity implements NetworkFragme
         topTracksFragment = (TopTracksFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.fragment_tracks);
 
-        MainActivity.getNetworkFragment().searchTopTracks(artistId);
+        // avoid double calls
+        if (!artistId.equals(MainActivity.getNetworkFragment().getCurrentArtistId())) {
+            MainActivity.getNetworkFragment().searchTopTracks(artistId);
+        }
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {

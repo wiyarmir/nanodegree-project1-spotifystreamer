@@ -38,6 +38,7 @@ public class NetworkFragment extends Fragment {
     private OnTracksResultListener onTracksResult;
     private OnArtistsResultListener onArtistsResult;
     private String currentArtist;
+    private String currentArtistId;
 
 
     public String getCurrentArtistName() {
@@ -50,6 +51,10 @@ public class NetworkFragment extends Fragment {
 
     public List<Track> getTopTrackList() {
         return topTrackList;
+    }
+
+    public String getCurrentArtistId() {
+        return currentArtistId;
     }
 
     public interface OnArtistsResultListener {
@@ -134,6 +139,8 @@ public class NetworkFragment extends Fragment {
     }
 
     public void searchTopTracks(String artistId) {
+        currentArtistId = artistId;
+
         Map<String, Object> paramMap = new ArrayMap<>();
         paramMap.put(SpotifyService.COUNTRY, Locale.getDefault().getCountry());
         spotify.getArtistTopTrack(artistId, paramMap, new Callback<Tracks>() {

@@ -46,13 +46,19 @@ public class ArtistFragment extends Fragment implements NetworkFragment.OnArtist
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_artist_layout, container, false);
         results = (ListView) view.findViewById(R.id.results);
+
         adapter = new ArtistAdapter(getActivity(), R.layout.listitem_artist);
 
-        results.setAdapter(adapter);
 
         input = (EditText) view.findViewById(R.id.input);
 
         empty = (TextView) view.findViewById(R.id.empty);
+
+        if (savedInstanceState != null) {
+            addArtists(); //restore state
+        }
+
+        results.setAdapter(adapter);
 
         return view;
     }

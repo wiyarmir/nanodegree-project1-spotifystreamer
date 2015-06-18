@@ -7,7 +7,6 @@ import android.widget.ListView;
 
 import es.guillermoorellana.spotifystreamer.MainActivity;
 import es.guillermoorellana.spotifystreamer.R;
-import es.guillermoorellana.spotifystreamer.TopTrackActivity;
 import es.guillermoorellana.spotifystreamer.adapters.TrackAdapter;
 
 /**
@@ -23,6 +22,9 @@ public class TopTracksFragment extends ListFragment implements NetworkFragment.O
         super.onViewCreated(view, savedInstanceState);
         setListAdapter(new TrackAdapter(getActivity(), R.layout.listitem_track));
         setListShown(false);
+        if (savedInstanceState != null) {
+            addTracks();
+        }
     }
 
     public void onListItemClick(ListView listView, View view, int position, long id) {
@@ -33,8 +35,6 @@ public class TopTracksFragment extends ListFragment implements NetworkFragment.O
     public void onNetworkSuccess() {
         getTrackAdapter().clear();
         addTracks();
-        setListShown(true);
-        setEmptyText(getActivity().getString(R.string.tracklist_empty));
     }
 
     @Override
@@ -45,6 +45,8 @@ public class TopTracksFragment extends ListFragment implements NetworkFragment.O
 
     private void addTracks() {
         getTrackAdapter().addAll(MainActivity.getNetworkFragment().getTopTrackList());
+        setListShown(true);
+        setEmptyText(getActivity().getString(R.string.tracklist_empty));
     }
 
     private TrackAdapter getTrackAdapter() {
