@@ -1,6 +1,7 @@
 package es.guillermoorellana.spotifystreamer.adapters;
 
 import android.content.Context;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import es.guillermoorellana.spotifystreamer.R;
-import es.guillermoorellana.spotifystreamer.models.Artist;
+import kaaes.spotify.webapi.android.models.Artist;
 
 /**
  * Created by wiyarmir on 07/06/2015.
@@ -94,6 +95,13 @@ public class ArtistAdapter extends BaseAdapter {
     }
 
     public void addAll(List<Artist> artists) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.GINGERBREAD_MR1) {
+            items.addAll(artists);
+        } else {
+            for (Artist artist : artists) {
+                items.add(artist);
+            }
+        }
         items.addAll(artists);
     }
 

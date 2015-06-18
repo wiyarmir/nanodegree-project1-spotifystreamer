@@ -22,7 +22,6 @@
         android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@android:color/black"
         tools:text="Coldplay &amp; Rihanna" />
 
 </LinearLayout>

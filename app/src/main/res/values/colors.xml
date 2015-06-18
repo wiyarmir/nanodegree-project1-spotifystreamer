@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">@color/darkGray</color>
+    <color name="colorPrimaryDark">@color/black</color>
+    <color name="colorAccent">@color/green</color>
+
+    <!-- According to http://spotify.kennedysgarage.com/branding.html these are branding colours-->
+    <color name="gray">#999999</color>
+    <color name="darkGray">#262626</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="green">#81b71a</color>
+    <color name="orange">#ff6000</color>
+</resources>

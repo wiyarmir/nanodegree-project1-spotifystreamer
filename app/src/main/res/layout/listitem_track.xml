@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal">
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="horizontal">
 
     <ImageView
         android:id="@android:id/icon"
@@ -12,13 +12,14 @@
         android:layout_gravity="center_vertical"
         android:layout_margin="5dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/no_album_art" />
+        android:src="@drawable/no_album_art"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
         android:orientation="vertical">
 
         <TextView
@@ -29,7 +30,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            tools:text="Cancion instrumental del hombre que tenia el record de llevarse mas tiempo" />
+            tools:text="Cancion instrumental del hombre que tenia el record de llevarse mas tiempo"/>
 
         <TextView
             android:id="@android:id/text2"
@@ -40,7 +41,7 @@
             android:maxLines="1"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textStyle="italic"
-            tools:text="Disco homenaje artistico tributo a todos esos titulos kilometricos" />
+            tools:text="Disco homenaje artistico tributo a todos esos titulos kilometricos"/>
     </LinearLayout>
 
 </LinearLayout>

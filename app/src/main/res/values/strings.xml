@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">Spotify Streamer</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_artist_top">ArtistTop</string>
+    <string name="title_activity_artist_top">Top Tracks</string>
 
-    <string name="hello_world">Hello world!</string>
+    <string name="notfound">Nothing found. Please try refining your search.</string>
+    <string name="tracklist_empty">No top tracks found for this artist.</string>
 </resources>
