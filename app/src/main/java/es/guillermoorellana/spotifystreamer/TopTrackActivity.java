@@ -1,22 +1,19 @@
 package es.guillermoorellana.spotifystreamer;
 
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.util.List;
-
 import es.guillermoorellana.spotifystreamer.fragments.ArtistFragment;
-import es.guillermoorellana.spotifystreamer.fragments.NetworkFragment;
+import es.guillermoorellana.spotifystreamer.fragments.PlayerFragment;
 import es.guillermoorellana.spotifystreamer.fragments.TopTracksFragment;
 import kaaes.spotify.webapi.android.models.Track;
 
 
-public class TopTrackActivity extends AppCompatActivity implements NetworkFragment.OnTracksResultListener {
-
-    private TopTracksFragment topTracksFragment;
+public class TopTrackActivity extends AppCompatActivity implements TopTracksFragment.Callback {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +33,16 @@ public class TopTrackActivity extends AppCompatActivity implements NetworkFragme
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        topTracksFragment = (TopTracksFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.fragment_tracks);
+        TopTracksFragment topTracksFragment;
+        if (savedInstanceState == null) {
+            topTracksFragment = new TopTracksFragment();
+            topTracksFragment.setArguments(getIntent().getExtras());
 
-        // avoid double calls
-        if (!artistId.equals(MainActivity.getNetworkFragment().getCurrentArtistId())) {
-            MainActivity.getNetworkFragment().searchTopTracks(artistId);
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.detail_container, topTracksFragment, TopTracksFragment.TAG)
+                    .commit();
         }
+
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -50,7 +50,6 @@ public class TopTrackActivity extends AppCompatActivity implements NetworkFragme
             case android.R.id.home:
                 finish();
                 break;
-
 
             default:
                 break;
@@ -60,28 +59,19 @@ public class TopTrackActivity extends AppCompatActivity implements NetworkFragme
     }
 
     @Override
-    public void onNetworkSuccess() {
-        topTracksFragment.onNetworkSuccess();
-    }
+    public void onListItemClick(Track track) {
+        PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                .findFragmentByTag(PlayerFragment.TAG);
 
-    @Override
-    public void onNetworkError(String message) {
-        topTracksFragment.onNetworkError(message);
-    }
+        if (playerFragment == null) {
+            playerFragment = new PlayerFragment();
+        }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        MainActivity.getNetworkFragment().setOnTracksResultListener(this);
-    }
-
-    @Override
-    protected void onStop() {
-        MainActivity.getNetworkFragment().setOnTracksResultListener(null);
-        super.onStop();
-    }
-
-    public List<Track> getTopTracksList() {
-        return MainActivity.getNetworkFragment().getTopTrackList();
+        playerFragment.setCurrentTrack(track);
+        getSupportFragmentManager().beginTransaction()
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .add(R.id.detail_container, playerFragment, PlayerFragment.TAG)
+                .addToBackStack(null)
+                .commit();
     }
 }

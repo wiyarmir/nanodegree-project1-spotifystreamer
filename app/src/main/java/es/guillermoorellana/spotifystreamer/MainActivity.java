@@ -1,18 +1,27 @@
 package es.guillermoorellana.spotifystreamer;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import es.guillermoorellana.spotifystreamer.fragments.ArtistFragment;
 import es.guillermoorellana.spotifystreamer.fragments.NetworkFragment;
+import es.guillermoorellana.spotifystreamer.fragments.PlayerFragment;
+import es.guillermoorellana.spotifystreamer.fragments.TopTracksFragment;
+import kaaes.spotify.webapi.android.models.Track;
 
 
-public class MainActivity extends AppCompatActivity implements NetworkFragment.OnArtistsResultListener {
+public class MainActivity extends AppCompatActivity
+        implements NetworkFragment.OnArtistsResultListener,
+        ArtistFragment.Callback,
+        TopTracksFragment.Callback {
 
     private static NetworkFragment networkFragment;
     private ArtistFragment artistFragment;
+    private boolean twoPane = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,13 +30,25 @@ public class MainActivity extends AppCompatActivity implements NetworkFragment.O
 
         networkFragment = (NetworkFragment) getSupportFragmentManager()
                 .findFragmentByTag(NetworkFragment.TAG);
-
         if (networkFragment == null) {
             networkFragment = new NetworkFragment();
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(networkFragment, NetworkFragment.TAG)
                     .commit();
+        }
+
+        if (findViewById(R.id.detail_container) != null) {
+            twoPane = true;
+            if (savedInstanceState == null) {
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.detail_container, new TopTracksFragment(),
+                                TopTracksFragment.TAG)
+                        .commit();
+            }
+        } else {
+            twoPane = false;
         }
 
         artistFragment = (ArtistFragment) getSupportFragmentManager()
@@ -44,6 +65,12 @@ public class MainActivity extends AppCompatActivity implements NetworkFragment.O
     protected void onStop() {
         super.onStop();
         networkFragment.setOnArtistsResultListener(null);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
     }
 
     @Override
@@ -75,5 +102,40 @@ public class MainActivity extends AppCompatActivity implements NetworkFragment.O
     @Override
     public void onNetworkError(String message) {
         artistFragment.onNetworkError(message);
+    }
+
+    @Override
+    public void onItemSelected(String artistId) {
+        if (!twoPane) {
+            Intent i = new Intent(this, TopTrackActivity.class);
+            i.putExtra(ArtistFragment.KEY_ARTIST_ID, artistId);
+            startActivity(i);
+        } else {
+            Bundle args = new Bundle();
+            args.putString(ArtistFragment.KEY_ARTIST_ID, artistId);
+
+            TopTracksFragment fragment = new TopTracksFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.detail_container, fragment, ArtistFragment.TAG)
+                    .commit();
+
+        }
+    }
+
+    @Override
+    public void onListItemClick(Track track) {
+        // if this is called to MainActivity, means that we are in big screen layout. Show as dialog
+        FragmentManager fm = getSupportFragmentManager();
+        PlayerFragment player;
+
+        player = (PlayerFragment) fm.findFragmentByTag(PlayerFragment.TAG);
+        if (player == null) {
+            player = new PlayerFragment();
+        }
+
+        player.setCurrentTrack(track);
+        player.show(fm, PlayerFragment.TAG);
     }
 }

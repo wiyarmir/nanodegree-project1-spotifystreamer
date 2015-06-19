@@ -5,4 +5,7 @@
 
     <string name="notfound">Nothing found. Please try refining your search.</string>
     <string name="tracklist_empty">No top tracks found for this artist.</string>
+    <string name="button_next_description">Next Song</string>
+    <string name="button_play_description">Play/Pause song</string>
+    <string name="button_prev_description">Previous song</string>
 </resources>

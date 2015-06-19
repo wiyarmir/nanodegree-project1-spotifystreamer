@@ -3,6 +3,7 @@
     package="es.guillermoorellana.spotifystreamer" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -26,6 +27,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="es.guillermoorellana.spotifystreamer.MainActivity" />
         </activity>
+
+        <service
+            android:name=".services.MediaPlayerService"
+            android:exported="false" >
+        </service>
     </application>
 
 </manifest>

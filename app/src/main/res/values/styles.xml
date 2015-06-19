@@ -12,6 +12,7 @@
         <item name="android:textColorSecondary">@color/gray</item>
         <item name="android:divider">@color/gray</item>
         <item name="android:listViewStyle">@style/listViewStyle</item>
+        <item name="android:dividerVertical">@color/gray</item>
     </style>
 
     <style name="listViewStyle">

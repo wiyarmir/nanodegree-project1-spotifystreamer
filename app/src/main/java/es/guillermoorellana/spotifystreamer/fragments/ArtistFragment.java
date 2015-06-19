@@ -1,7 +1,6 @@
 package es.guillermoorellana.spotifystreamer.fragments;
 
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -19,7 +18,6 @@ import butterknife.OnItemClick;
 import butterknife.OnTextChanged;
 import es.guillermoorellana.spotifystreamer.MainActivity;
 import es.guillermoorellana.spotifystreamer.R;
-import es.guillermoorellana.spotifystreamer.TopTrackActivity;
 import es.guillermoorellana.spotifystreamer.adapters.ArtistAdapter;
 import kaaes.spotify.webapi.android.models.Artist;
 
@@ -29,6 +27,11 @@ import kaaes.spotify.webapi.android.models.Artist;
 public class ArtistFragment extends Fragment implements NetworkFragment.OnArtistsResultListener {
 
     public static final String KEY_ARTIST_ID = "artist_id";
+    public static final String TAG = "ArtistFragment";
+
+    public interface Callback {
+        void onItemSelected(String artistId);
+    }
 
     @InjectView(R.id.results) ListView results;
     @InjectView(R.id.input) EditText input;
@@ -71,9 +74,7 @@ public class ArtistFragment extends Fragment implements NetworkFragment.OnArtist
     @OnItemClick(R.id.results)
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Artist artist = (Artist) parent.getItemAtPosition(position);
-        Intent i = new Intent(getActivity(), TopTrackActivity.class);
-        i.putExtra(KEY_ARTIST_ID, artist.id);
-        startActivity(i);
+        ((Callback) getActivity()).onItemSelected(artist.id);
     }
 
     @OnTextChanged(R.id.input)
