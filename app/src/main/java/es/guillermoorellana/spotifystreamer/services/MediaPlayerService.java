@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.IBinder;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -19,6 +20,7 @@ import java.util.List;
 
 import es.guillermoorellana.spotifystreamer.MainActivity;
 import es.guillermoorellana.spotifystreamer.R;
+import es.guillermoorellana.spotifystreamer.fragments.PlayerFragment;
 import kaaes.spotify.webapi.android.models.Track;
 
 /**
@@ -43,6 +45,8 @@ public class MediaPlayerService extends Service
     private static final String ACTION_PREV = "es.guillermoorellana.spotifystreamer.services.action.PREV";
     private static final String ACTION_START_FOREGROUND = "es.guillermoorellana.spotifystreamer.services.action.START_FOREGROUND";
     private static final String ACTION_STOP_FOREGROUND = "es.guillermoorellana.spotifystreamer.services.action.STOP_FOREGROUND";
+
+    public static final String ACTION_UPDATE = "es.guillermoorellana.spotifystreamer.services.action.UPDATE";
 
     private static final String EXTRA_INDEX = "es.guillermoorellana.spotifystreamer.services.extra.INDEX";
     public static final String TAG = "MPService";
@@ -128,14 +132,20 @@ public class MediaPlayerService extends Service
         context.startService(intent);
     }
 
+    public static void startActionPrev(Context context) {
+        Intent intent = new Intent(context, MediaPlayerService.class);
+        intent.setAction(ACTION_PREV);
+        context.startService(intent);
+    }
+
+    public static void startActionNext(Context context) {
+        Intent intent = new Intent(context, MediaPlayerService.class);
+        intent.setAction(ACTION_NEXT);
+        context.startService(intent);
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (mediaPlayer == null) {
-            mediaPlayer = new MediaPlayer();
-        } else {
-            mediaPlayer.stop();
-        }
         if (intent != null) {
             final String action = intent.getAction();
             if (ACTION_START_FOREGROUND.equals(action)) {
@@ -216,6 +226,14 @@ public class MediaPlayerService extends Service
     private void handleActionPlay(int index) {
         Log.d(TAG, "handleActionPlay");
         currentIndex = index;
+
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+        }
+        mediaPlayer = new MediaPlayer();
+
+
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         int result = audioManager.requestAudioFocus(
                 this,
@@ -272,11 +290,18 @@ public class MediaPlayerService extends Service
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         Log.d(TAG, "Completion");
+        goNextTrack();
+    }
+
+    private void goNextTrack() {
         if (currentIndex + 1 < playlist.size()) {
             handleActionPlay(currentIndex + 1);
         } else {
             handleActionStopForeground();
         }
+        Intent intent = new Intent(ACTION_UPDATE);
+        intent.putExtra(PlayerFragment.KEY_TRACK_INDEX, currentIndex);
+        sendBroadcast(intent);
     }
 
     @Override
@@ -298,4 +323,5 @@ public class MediaPlayerService extends Service
         Log.d(TAG, "mediaplayer has info");
         return false;
     }
+
 }

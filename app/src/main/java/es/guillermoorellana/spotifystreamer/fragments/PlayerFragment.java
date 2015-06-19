@@ -1,6 +1,10 @@
 package es.guillermoorellana.spotifystreamer.fragments;
 
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -45,7 +49,17 @@ public class PlayerFragment extends DialogFragment {
     @InjectView(R.id.totaltime) TextView totalTime;
 
     private boolean playing = false;
+    private UpdateReceiver receiver;
 
+    public class UpdateReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (MediaPlayerService.ACTION_UPDATE.equals(intent.getAction())) {
+                updateDisplayedTrack(intent.getIntExtra(KEY_TRACK_INDEX, 0));
+            }
+        }
+    }
 
     @Nullable
     @Override
@@ -66,6 +80,15 @@ public class PlayerFragment extends DialogFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(MediaPlayerService.ACTION_UPDATE);
+        receiver = new UpdateReceiver();
+        getActivity().registerReceiver(receiver, filter);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
     }
 
@@ -75,13 +98,14 @@ public class PlayerFragment extends DialogFragment {
 
         Bundle args = getArguments();
         int currentIndex = args.getInt(KEY_TRACK_INDEX);
-        List<Track> topTrackList = MainActivity.getNetworkFragment().getTopTrackList();
-        updateDisplayedTrack(topTrackList.get(currentIndex));
+        updateDisplayedTrack(currentIndex);
         MediaPlayerService.startActionPlay(getActivity(), currentIndex);
 
     }
 
-    private void updateDisplayedTrack(Track currentTrack) {
+    private void updateDisplayedTrack(int currentIndex) {
+        List<Track> topTrackList = MainActivity.getNetworkFragment().getTopTrackList();
+        Track currentTrack = topTrackList.get(currentIndex);
         if (currentTrack != null) {
             trackTitle.setText(currentTrack.name);
             trackArtist.setText(currentTrack.artists.get(0).name);
@@ -110,5 +134,19 @@ public class PlayerFragment extends DialogFragment {
         }
     }
 
+    @OnClick(R.id.button_next)
+    public void onClickButtonNext() {
+        MediaPlayerService.startActionNext(getActivity());
+    }
 
+    @OnClick(R.id.button_prev)
+    public void onClickButtonPrev() {
+        MediaPlayerService.startActionPrev(getActivity());
+    }
+
+    @Override
+    public void onDestroy() {
+        getActivity().unregisterReceiver(receiver);
+        super.onDestroy();
+    }
 }
