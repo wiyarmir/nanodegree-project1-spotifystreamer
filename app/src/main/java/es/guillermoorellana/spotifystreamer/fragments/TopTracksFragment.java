@@ -17,7 +17,7 @@ public class TopTracksFragment extends ListFragment implements NetworkFragment.O
     public static final String TAG = "TopTracks";
 
     public interface Callback {
-        void onListItemClick(Track track);
+        void onListItemClick(int track);
     }
 
     public void onCreate(Bundle savedInstanceState) {
@@ -51,7 +51,7 @@ public class TopTracksFragment extends ListFragment implements NetworkFragment.O
     public void onListItemClick(ListView listView, View view, int position, long id) {
         Track track = (Track) listView.getAdapter().getItem(position);
         if (track != null) {
-            ((Callback) getActivity()).onListItemClick(track);
+            ((Callback) getActivity()).onListItemClick(position);
         }
     }
 
@@ -66,7 +66,7 @@ public class TopTracksFragment extends ListFragment implements NetworkFragment.O
         getTrackAdapter().clear();
         getActivity().finish();
     }
-
+    
     private void addTracks() {
         getTrackAdapter().addAll(MainActivity.getNetworkFragment().getTopTrackList());
         setListShown(true);

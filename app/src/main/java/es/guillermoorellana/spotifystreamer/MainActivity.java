@@ -11,7 +11,6 @@ import es.guillermoorellana.spotifystreamer.fragments.ArtistFragment;
 import es.guillermoorellana.spotifystreamer.fragments.NetworkFragment;
 import es.guillermoorellana.spotifystreamer.fragments.PlayerFragment;
 import es.guillermoorellana.spotifystreamer.fragments.TopTracksFragment;
-import kaaes.spotify.webapi.android.models.Track;
 
 
 public class MainActivity extends AppCompatActivity
@@ -68,12 +67,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
@@ -125,7 +118,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onListItemClick(Track track) {
+    public void onListItemClick(int track) {
         // if this is called to MainActivity, means that we are in big screen layout. Show as dialog
         FragmentManager fm = getSupportFragmentManager();
         PlayerFragment player;
@@ -135,7 +128,9 @@ public class MainActivity extends AppCompatActivity
             player = new PlayerFragment();
         }
 
-        player.setCurrentTrack(track);
+        Bundle args = new Bundle();
+        args.putInt(PlayerFragment.KEY_TRACK_INDEX, track);
+        player.setArguments(args);
         player.show(fm, PlayerFragment.TAG);
     }
 }

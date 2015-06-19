@@ -10,7 +10,6 @@ import android.widget.Toast;
 import es.guillermoorellana.spotifystreamer.fragments.ArtistFragment;
 import es.guillermoorellana.spotifystreamer.fragments.PlayerFragment;
 import es.guillermoorellana.spotifystreamer.fragments.TopTracksFragment;
-import kaaes.spotify.webapi.android.models.Track;
 
 
 public class TopTrackActivity extends AppCompatActivity implements TopTracksFragment.Callback {
@@ -59,7 +58,7 @@ public class TopTrackActivity extends AppCompatActivity implements TopTracksFrag
     }
 
     @Override
-    public void onListItemClick(Track track) {
+    public void onListItemClick(int track) {
         PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
                 .findFragmentByTag(PlayerFragment.TAG);
 
@@ -67,7 +66,10 @@ public class TopTrackActivity extends AppCompatActivity implements TopTracksFrag
             playerFragment = new PlayerFragment();
         }
 
-        playerFragment.setCurrentTrack(track);
+        Bundle args = new Bundle();
+        args.putInt(PlayerFragment.KEY_TRACK_INDEX, track);
+        playerFragment.setArguments(args);
+
         getSupportFragmentManager().beginTransaction()
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .add(R.id.detail_container, playerFragment, PlayerFragment.TAG)

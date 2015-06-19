@@ -1,8 +1,6 @@
 package es.guillermoorellana.spotifystreamer.fragments;
 
 import android.app.Dialog;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,22 +15,24 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import es.guillermoorellana.spotifystreamer.MainActivity;
 import es.guillermoorellana.spotifystreamer.R;
+import es.guillermoorellana.spotifystreamer.services.MediaPlayerService;
 import kaaes.spotify.webapi.android.models.Track;
 
 
 /**
  * Created by guillermo on 19/06/2015.
  */
-public class PlayerFragment extends DialogFragment implements MediaPlayer.OnPreparedListener {
+public class PlayerFragment extends DialogFragment {
     public static final String TAG = "dialogfragment";
-    private MediaPlayer mediaPlayer;
+    public static final String KEY_TRACK_INDEX = "trackIndex";
 
     @InjectView(R.id.cover) ImageView albumCover;
     @InjectView(R.id.title) TextView trackTitle;
@@ -44,8 +44,8 @@ public class PlayerFragment extends DialogFragment implements MediaPlayer.OnPrep
     @InjectView(R.id.elapsedtime) TextView elapsedTime;
     @InjectView(R.id.totaltime) TextView totalTime;
 
-    private Track currentTrack = null;
     private boolean playing = false;
+
 
     @Nullable
     @Override
@@ -66,14 +66,22 @@ public class PlayerFragment extends DialogFragment implements MediaPlayer.OnPrep
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (mediaPlayer == null) {
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        }
-        updateDisplayedTrack();
+
     }
 
-    private void updateDisplayedTrack() {
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Bundle args = getArguments();
+        int currentIndex = args.getInt(KEY_TRACK_INDEX);
+        List<Track> topTrackList = MainActivity.getNetworkFragment().getTopTrackList();
+        updateDisplayedTrack(topTrackList.get(currentIndex));
+        MediaPlayerService.startActionPlay(getActivity(), currentIndex);
+
+    }
+
+    private void updateDisplayedTrack(Track currentTrack) {
         if (currentTrack != null) {
             trackTitle.setText(currentTrack.name);
             trackArtist.setText(currentTrack.artists.get(0).name);
@@ -87,26 +95,7 @@ public class PlayerFragment extends DialogFragment implements MediaPlayer.OnPrep
             totalTime.setText(String.format("%d:%02d",
                     TimeUnit.MILLISECONDS.toMinutes(currentTrack.duration_ms),
                     TimeUnit.MILLISECONDS.toSeconds(currentTrack.duration_ms) % 60));
-
-            try {
-                mediaPlayer.setDataSource(currentTrack.preview_url);
-            } catch (IOException | IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-
-            buttonPlay.setEnabled(false);
-            mediaPlayer.setOnPreparedListener(this);
-            mediaPlayer.prepareAsync();
         }
-    }
-
-    public void setCurrentTrack(Track currentTrack) {
-        this.currentTrack = currentTrack;
-    }
-
-    @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-        buttonPlay.setEnabled(true);
     }
 
     @OnClick(R.id.button_play)
@@ -114,16 +103,12 @@ public class PlayerFragment extends DialogFragment implements MediaPlayer.OnPrep
         playing = !playing;
         if (playing) {
             view.setImageResource(android.R.drawable.ic_media_pause);
-            mediaPlayer.start();
+            MediaPlayerService.startActionResume(getActivity());
         } else {
             view.setImageResource(android.R.drawable.ic_media_play);
-            mediaPlayer.pause();
+            MediaPlayerService.startActionPause(getActivity());
         }
     }
 
-    @Override
-    public void onPause() {
-        mediaPlayer.pause();
-        super.onPause();
-    }
+
 }
