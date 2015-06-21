@@ -9,12 +9,14 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -28,6 +30,7 @@ import butterknife.OnClick;
 import es.guillermoorellana.spotifystreamer.MainActivity;
 import es.guillermoorellana.spotifystreamer.R;
 import es.guillermoorellana.spotifystreamer.services.MediaPlayerService;
+import es.guillermoorellana.spotifystreamer.services.MediaPlayerService.State;
 import kaaes.spotify.webapi.android.models.Track;
 
 
@@ -47,16 +50,41 @@ public class PlayerFragment extends DialogFragment {
     @InjectView(R.id.button_prev) ImageButton buttonPrev;
     @InjectView(R.id.elapsedtime) TextView elapsedTime;
     @InjectView(R.id.totaltime) TextView totalTime;
+    @InjectView(R.id.seekBar) SeekBar progressBar;
 
     private boolean playing = false;
     private UpdateReceiver receiver;
+
+
+    private void updateElapsed(int seconds) {
+        progressBar.setProgress(seconds);
+        if (elapsedTime != null) {
+            elapsedTime.setText(String.format("%d:%02d",
+                    TimeUnit.SECONDS.toMinutes(seconds),
+                    seconds % 60));
+        }
+    }
 
     public class UpdateReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             if (MediaPlayerService.ACTION_UPDATE.equals(intent.getAction())) {
-                updateDisplayedTrack(intent.getIntExtra(KEY_TRACK_INDEX, 0));
+                Log.d(TAG, "received update broadcast");
+                if (intent.hasExtra(KEY_TRACK_INDEX)) {
+                    updateDisplayedTrack(intent.getIntExtra(KEY_TRACK_INDEX, 0));
+                }
+                if (intent.hasExtra(MediaPlayerService.KEY_STATE)) {
+                    State state = (State) intent.getSerializableExtra(MediaPlayerService.KEY_STATE);
+                    playing = State.PLAYING.equals(state);
+                }
+                if (intent.hasExtra(MediaPlayerService.KEY_TRACK_LENGTH)) {
+                    updateTotalLenght(intent.getIntExtra(MediaPlayerService.KEY_TRACK_LENGTH, 0));
+                }
+                if (intent.hasExtra(MediaPlayerService.KEY_ELAPSED_TIME)) {
+                    updateElapsed(intent.getIntExtra(MediaPlayerService.KEY_ELAPSED_TIME, 0));
+                }
+                updatePlayButton();
             }
         }
     }
@@ -74,6 +102,7 @@ public class PlayerFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        ButterKnife.inject(this, dialog);
         return dialog;
     }
 
@@ -84,23 +113,26 @@ public class PlayerFragment extends DialogFragment {
         filter.addAction(MediaPlayerService.ACTION_UPDATE);
         receiver = new UpdateReceiver();
         getActivity().registerReceiver(receiver, filter);
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
 
         Bundle args = getArguments();
         int currentIndex = args.getInt(KEY_TRACK_INDEX);
-        updateDisplayedTrack(currentIndex);
-        MediaPlayerService.startActionPlay(getActivity(), currentIndex);
 
+        progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                MediaPlayerService.startActionSeek(getActivity(), seekBar.getProgress());
+            }
+        });
     }
 
     private void updateDisplayedTrack(int currentIndex) {
@@ -116,21 +148,29 @@ public class PlayerFragment extends DialogFragment {
                     .placeholder(R.drawable.no_album_art)
                     .into(albumCover);
 
-            totalTime.setText(String.format("%d:%02d",
-                    TimeUnit.MILLISECONDS.toMinutes(currentTrack.duration_ms),
-                    TimeUnit.MILLISECONDS.toSeconds(currentTrack.duration_ms) % 60));
+            updateTotalLenght(currentTrack.duration_ms);
         }
     }
 
+    private void updateTotalLenght(long duration_ms) {
+        totalTime.setText(String.format("%d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(duration_ms),
+                TimeUnit.MILLISECONDS.toSeconds(duration_ms) % 60));
+        progressBar.setMax((int) duration_ms / 1000);
+    }
+
     @OnClick(R.id.button_play)
-    public void onClickButtonPlay(ImageView view) {
+    public void onClickButtonPlayPause() {
         playing = !playing;
+        updatePlayButton();
+        MediaPlayerService.startActionPlayPause(getActivity());
+    }
+
+    private void updatePlayButton() {
         if (playing) {
-            view.setImageResource(android.R.drawable.ic_media_pause);
-            MediaPlayerService.startActionResume(getActivity());
+            buttonPlay.setImageResource(android.R.drawable.ic_media_pause);
         } else {
-            view.setImageResource(android.R.drawable.ic_media_play);
-            MediaPlayerService.startActionPause(getActivity());
+            buttonPlay.setImageResource(android.R.drawable.ic_media_play);
         }
     }
 
@@ -142,6 +182,11 @@ public class PlayerFragment extends DialogFragment {
     @OnClick(R.id.button_prev)
     public void onClickButtonPrev() {
         MediaPlayerService.startActionPrev(getActivity());
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 
     @Override

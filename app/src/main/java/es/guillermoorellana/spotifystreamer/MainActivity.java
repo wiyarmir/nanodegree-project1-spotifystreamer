@@ -11,6 +11,7 @@ import es.guillermoorellana.spotifystreamer.fragments.ArtistFragment;
 import es.guillermoorellana.spotifystreamer.fragments.NetworkFragment;
 import es.guillermoorellana.spotifystreamer.fragments.PlayerFragment;
 import es.guillermoorellana.spotifystreamer.fragments.TopTracksFragment;
+import es.guillermoorellana.spotifystreamer.services.MediaPlayerService;
 
 
 public class MainActivity extends AppCompatActivity
@@ -132,5 +133,6 @@ public class MainActivity extends AppCompatActivity
         args.putInt(PlayerFragment.KEY_TRACK_INDEX, track);
         player.setArguments(args);
         player.show(fm, PlayerFragment.TAG);
+        MediaPlayerService.startActionPlay(this, track);
     }
 }

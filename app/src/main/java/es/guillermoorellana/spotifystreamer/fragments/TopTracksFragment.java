@@ -30,6 +30,7 @@ public class TopTracksFragment extends ListFragment implements NetworkFragment.O
         setListAdapter(new TrackAdapter(getActivity(), R.layout.listitem_track));
         if (savedInstanceState != null) {
             addTracks();
+            return;
         }
 
         Bundle arguments = getArguments();
@@ -46,6 +47,12 @@ public class TopTracksFragment extends ListFragment implements NetworkFragment.O
         } else {
             setEmptyText("");
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
     }
 
     public void onListItemClick(ListView listView, View view, int position, long id) {
@@ -66,7 +73,7 @@ public class TopTracksFragment extends ListFragment implements NetworkFragment.O
         getTrackAdapter().clear();
         getActivity().finish();
     }
-    
+
     private void addTracks() {
         getTrackAdapter().addAll(MainActivity.getNetworkFragment().getTopTrackList());
         setListShown(true);

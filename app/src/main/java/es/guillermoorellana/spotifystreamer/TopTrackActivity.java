@@ -10,6 +10,7 @@ import android.widget.Toast;
 import es.guillermoorellana.spotifystreamer.fragments.ArtistFragment;
 import es.guillermoorellana.spotifystreamer.fragments.PlayerFragment;
 import es.guillermoorellana.spotifystreamer.fragments.TopTracksFragment;
+import es.guillermoorellana.spotifystreamer.services.MediaPlayerService;
 
 
 public class TopTrackActivity extends AppCompatActivity implements TopTracksFragment.Callback {
@@ -75,5 +76,6 @@ public class TopTrackActivity extends AppCompatActivity implements TopTracksFrag
                 .add(R.id.detail_container, playerFragment, PlayerFragment.TAG)
                 .addToBackStack(null)
                 .commit();
+        MediaPlayerService.startActionPlay(this, track);
     }
 }
