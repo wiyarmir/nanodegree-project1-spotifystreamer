@@ -70,7 +70,7 @@ public class PlayerFragment extends DialogFragment {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (MediaPlayerService.ACTION_UPDATE.equals(intent.getAction())) {
-                Log.d(TAG, "received update broadcast");
+//                Log.d(TAG, "received update broadcast");
                 if (intent.hasExtra(KEY_TRACK_INDEX)) {
                     updateDisplayedTrack(intent.getIntExtra(KEY_TRACK_INDEX, 0));
                 }

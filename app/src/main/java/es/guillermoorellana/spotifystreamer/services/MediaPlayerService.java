@@ -2,8 +2,10 @@ package es.guillermoorellana.spotifystreamer.services;
 
 import android.app.IntentService;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -12,8 +14,11 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
 import java.io.IOException;
@@ -34,15 +39,18 @@ public class MediaPlayerService extends Service
         MediaPlayer.OnBufferingUpdateListener,
         MediaPlayer.OnCompletionListener,
         MediaPlayer.OnErrorListener,
-        MediaPlayer.OnInfoListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnSeekCompleteListener {
+        MediaPlayer.OnInfoListener,
+        MediaPlayer.OnPreparedListener,
+        MediaPlayer.OnSeekCompleteListener {
 
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
     private static final String ACTION_MAIN = "es.guillermoorellana.spotifystreamer.services.action.MAIN";
     private static final String ACTION_PLAY = "es.guillermoorellana.spotifystreamer.services.action.PLAY";
-    private static final String ACTION_PLAYPAUSE = "es.guillermoorellana.spotifystreamer.services.action.PAUSE";
+    private static final String ACTION_PAUSE = "es.guillermoorellana.spotifystreamer.services.action.PAUSE";
     private static final String ACTION_NEXT = "es.guillermoorellana.spotifystreamer.services.action.NEXT";
     private static final String ACTION_PREV = "es.guillermoorellana.spotifystreamer.services.action.PREV";
     private static final String ACTION_SEEK = "es.guillermoorellana.spotifystreamer.services.action.SEEK";
+    private static final String ACTION_STOP = "es.guillermoorellana.spotifystreamer.services.action.STOP";
 
     public static final String ACTION_UPDATE = "es.guillermoorellana.spotifystreamer.services.action.UPDATE";
 
@@ -56,6 +64,7 @@ public class MediaPlayerService extends Service
     public static final String KEY_ELAPSED_TIME = "elapsed";
 
     private static final int NOTIFICATION_ID = 0x55;
+    private MediaSessionCompat mediaSession;
 
     @Override
     public void onSeekComplete(MediaPlayer mp) {
@@ -75,6 +84,7 @@ public class MediaPlayerService extends Service
 
     private State playerState;
     private MediaPlayer mediaPlayer;
+    private MediaControllerCompat mediaController;
     private List<Track> playlist;
     private int currentIndex;
 
@@ -102,6 +112,9 @@ public class MediaPlayerService extends Service
         mediaPlayer.release();
         mediaPlayer = null;
         ((AudioManager) getSystemService(Context.AUDIO_SERVICE)).abandonAudioFocus(this);
+        if (mediaSession != null) {
+            mediaSession.release();
+        }
         super.onDestroy();
     }
 
@@ -140,7 +153,7 @@ public class MediaPlayerService extends Service
      */
     public static void startActionPlayPause(Context context) {
         Intent intent = new Intent(context, MediaPlayerService.class);
-        intent.setAction(ACTION_PLAYPAUSE);
+        intent.setAction(ACTION_PAUSE);
         context.startService(intent);
     }
 
@@ -158,25 +171,32 @@ public class MediaPlayerService extends Service
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
-            final String action = intent.getAction();
-            if (ACTION_PLAY.equals(action)) {
-                final int param1 = intent.getIntExtra(EXTRA_INDEX, 0);
-                handleActionPlay(param1);
-            } else if (ACTION_PLAYPAUSE.equals(action)) {
-                handleActionPlayPause();
-            } else if (ACTION_NEXT.equals(action)) {
-                handleActionNext();
-            } else if (ACTION_PREV.equals(action)) {
-                handleActionPrev();
-
-            } else if (ACTION_SEEK.equals(action)) {
-                final int param1 = intent.getIntExtra(EXTRA_PROGRESS, 0);
-                handleActionSeek(param1);
-            }
+        if (mediaSession == null) {
+            initMediaSessions();
         }
 
+        handleIntent(intent);
+
         return START_STICKY;
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent == null || intent.getAction() == null)
+            return;
+
+        String action = intent.getAction();
+
+        if (action.equalsIgnoreCase(ACTION_PLAY)) {
+            mediaController.getTransportControls().play();
+        } else if (action.equalsIgnoreCase(ACTION_PAUSE)) {
+            mediaController.getTransportControls().pause();
+        } else if (action.equalsIgnoreCase(ACTION_PREV)) {
+            mediaController.getTransportControls().skipToPrevious();
+        } else if (action.equalsIgnoreCase(ACTION_NEXT)) {
+            mediaController.getTransportControls().skipToNext();
+        } else if (action.equalsIgnoreCase(ACTION_STOP)) {
+            mediaController.getTransportControls().stop();
+        }
     }
 
     private void handleActionSeek(int progress) {
@@ -194,7 +214,14 @@ public class MediaPlayerService extends Service
         goNewTrack(currentIndex + 1);
     }
 
-    private Notification buildNotificationForCurrentTrack() {
+    private NotificationCompat.Action generateAction(int icon, String title, String intentAction) {
+        Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+        intent.setAction(intentAction);
+        PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 1, intent, 0);
+        return new NotificationCompat.Action.Builder(icon, title, pendingIntent).build();
+    }
+
+    private Notification buildNotificationForCurrentTrack(NotificationCompat.Action action) {
         Track track = playlist.get(currentIndex);
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -202,18 +229,6 @@ public class MediaPlayerService extends Service
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
-        Intent previousIntent = new Intent(this, MediaPlayerService.class);
-        previousIntent.setAction(ACTION_PREV);
-        PendingIntent ppreviousIntent = PendingIntent.getService(this, 0, previousIntent, 0);
-
-        Intent playIntent = new Intent(this, MediaPlayerService.class);
-        playIntent.setAction(ACTION_PLAYPAUSE);
-        PendingIntent pplayIntent = PendingIntent.getService(this, 0, playIntent, 0);
-
-        Intent nextIntent = new Intent(this, MediaPlayerService.class);
-        nextIntent.setAction(ACTION_NEXT);
-        PendingIntent pnextIntent = PendingIntent.getService(this, 0, nextIntent, 0);
 
         Bitmap icon = BitmapFactory.decodeResource(getResources(), R.drawable.no_album_art);
 
@@ -225,10 +240,11 @@ public class MediaPlayerService extends Service
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
                 .setContentIntent(pendingIntent)
-                .setOngoing(true)
-                .addAction(android.R.drawable.ic_media_previous, "Previous", ppreviousIntent)
-                .addAction(android.R.drawable.ic_media_play, "Play", pplayIntent)
-                .addAction(android.R.drawable.ic_media_next, "Next", pnextIntent)
+                .setStyle(new NotificationCompat.MediaStyle())
+                .addAction(generateAction(android.R.drawable.ic_media_previous, "Previous", ACTION_PREV))
+                .addAction(action)
+                .addAction(generateAction(android.R.drawable.ic_media_next, "Next", ACTION_NEXT))
+
                 .build();
     }
 
@@ -265,7 +281,7 @@ public class MediaPlayerService extends Service
             mediaPlayer.setDataSource(preview_url);
             mediaPlayer.setOnPreparedListener(this);
             mediaPlayer.prepare();
-            doPlay();
+            mediaPlayer.start();
         } catch (IOException | IllegalArgumentException e) {
             e.printStackTrace();
         }
@@ -280,30 +296,99 @@ public class MediaPlayerService extends Service
         playerState = State.STOPPED;
     }
 
-    private void handleActionPlayPause() {
-        if (State.PLAYING.equals(playerState)) {
-            doPause();
-        } else if (State.PAUSED.equals(playerState)) {
-            doPlay();
-        }
+    private void handleActionPlay() {
+        mediaPlayer.start();
+        mediaSession.setPlaybackState(buildPlaybackState(PlaybackStateCompat.STATE_PLAYING, 0));
+        playerState = State.PLAYING;
+        startForeground(NOTIFICATION_ID, buildNotificationForCurrentTrack(null));
+        mHandler.postDelayed(timer, 0);
         Intent intent = new Intent(ACTION_UPDATE);
         intent.putExtra(MediaPlayerService.KEY_STATE, playerState);
         sendBroadcast(intent);
     }
 
-    private void doPause() {
+    private void handleActionPause() {
+
         mediaPlayer.pause();
         playerState = State.PAUSED;
         stopForeground(true);
         mHandler.removeCallbacks(timer);
+        Intent intent = new Intent(ACTION_UPDATE);
+        intent.putExtra(MediaPlayerService.KEY_STATE, playerState);
+        sendBroadcast(intent);
+
     }
 
-    private void doPlay() {
-        mediaPlayer.start();
-        playerState = State.PLAYING;
-        startForeground(NOTIFICATION_ID, buildNotificationForCurrentTrack());
-        mHandler.postDelayed(timer, 0);
+    private PlaybackStateCompat buildPlaybackState(int state, long position) {
+        return new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PLAY_PAUSE
+                        | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+                        | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+                .setState(state, position, 1)
+                .build();
     }
+
+
+    private void initMediaSessions() {
+        mediaPlayer = new MediaPlayer();
+
+        mediaSession = new MediaSessionCompat(
+                this,
+                TAG,
+                ComponentName.unflattenFromString("es.guillermoorellana.spotifystreamer.services.MediaPlayerService"),
+                null);
+        mediaController = mediaSession.getController();
+
+        mediaSession.setCallback(new MediaSessionCompat.Callback() {
+            @Override
+            public void onPlay() {
+                super.onPlay();
+                Log.e("MediaPlayerService", "onPlay");
+                updateNotification(generateAction(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE));
+            }
+
+            @Override
+            public void onPause() {
+                super.onPause();
+                Log.e("MediaPlayerService", "onPause");
+                updateNotification(generateAction(android.R.drawable.ic_media_play, "Play", ACTION_PLAY));
+            }
+
+            @Override
+            public void onSkipToNext() {
+                super.onSkipToNext();
+                Log.e("MediaPlayerService", "onSkipToNext");
+                handleActionNext();
+                updateNotification(generateAction(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE));
+            }
+
+            @Override
+            public void onSkipToPrevious() {
+                super.onSkipToPrevious();
+                Log.e("MediaPlayerService", "onSkipToPrevious");
+                handleActionPrev();
+                updateNotification(generateAction(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE));
+            }
+
+
+            @Override
+            public void onStop() {
+                super.onStop();
+                Log.e("MediaPlayerService", "onStop");
+                NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.cancel(NOTIFICATION_ID);
+                Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+                stopService(intent);
+            }
+
+            @Override
+            public void onSeekTo(long pos) {
+                super.onSeekTo(pos);
+            }
+
+        });
+    }
+
 
     @Override
     public void onAudioFocusChange(int focusChange) {
@@ -361,7 +446,7 @@ public class MediaPlayerService extends Service
     @Override
     public void onPrepared(MediaPlayer mp) {
         Log.d(TAG, "mediaplayer is ready");
-        updateNotification();
+        updateNotification(null);
         Intent intent = new Intent(ACTION_UPDATE);
         intent.putExtra(PlayerFragment.KEY_TRACK_INDEX, currentIndex);
         intent.putExtra(MediaPlayerService.KEY_TRACK_LENGTH, mediaPlayer.getDuration());
@@ -370,8 +455,9 @@ public class MediaPlayerService extends Service
         sendBroadcast(intent);
     }
 
-    private void updateNotification() {
+    private void updateNotification(NotificationCompat.Action middleAction) {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(NOTIFICATION_ID, buildNotificationForCurrentTrack());
+        Notification notification = buildNotificationForCurrentTrack(middleAction);
+        notificationManager.notify(NOTIFICATION_ID, notification);
     }
 }
