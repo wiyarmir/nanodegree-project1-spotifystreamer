@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +29,6 @@ import butterknife.OnClick;
 import es.guillermoorellana.spotifystreamer.MainActivity;
 import es.guillermoorellana.spotifystreamer.R;
 import es.guillermoorellana.spotifystreamer.services.MediaPlayerService;
-import es.guillermoorellana.spotifystreamer.services.MediaPlayerService.State;
 import kaaes.spotify.webapi.android.models.Track;
 
 
@@ -53,7 +51,6 @@ public class PlayerFragment extends DialogFragment {
     @InjectView(R.id.seekBar) SeekBar progressBar;
 
     private boolean playing = false;
-    private UpdateReceiver receiver;
 
 
     private void updateElapsed(int seconds) {
@@ -65,29 +62,6 @@ public class PlayerFragment extends DialogFragment {
         }
     }
 
-    public class UpdateReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (MediaPlayerService.ACTION_UPDATE.equals(intent.getAction())) {
-//                Log.d(TAG, "received update broadcast");
-                if (intent.hasExtra(KEY_TRACK_INDEX)) {
-                    updateDisplayedTrack(intent.getIntExtra(KEY_TRACK_INDEX, 0));
-                }
-                if (intent.hasExtra(MediaPlayerService.KEY_STATE)) {
-                    State state = (State) intent.getSerializableExtra(MediaPlayerService.KEY_STATE);
-                    playing = State.PLAYING.equals(state);
-                }
-                if (intent.hasExtra(MediaPlayerService.KEY_TRACK_LENGTH)) {
-                    updateTotalLenght(intent.getIntExtra(MediaPlayerService.KEY_TRACK_LENGTH, 0));
-                }
-                if (intent.hasExtra(MediaPlayerService.KEY_ELAPSED_TIME)) {
-                    updateElapsed(intent.getIntExtra(MediaPlayerService.KEY_ELAPSED_TIME, 0));
-                }
-                updatePlayButton();
-            }
-        }
-    }
 
     @Nullable
     @Override
@@ -111,8 +85,6 @@ public class PlayerFragment extends DialogFragment {
         super.onActivityCreated(savedInstanceState);
         IntentFilter filter = new IntentFilter();
         filter.addAction(MediaPlayerService.ACTION_UPDATE);
-        receiver = new UpdateReceiver();
-        getActivity().registerReceiver(receiver, filter);
 
         Bundle args = getArguments();
         int currentIndex = args.getInt(KEY_TRACK_INDEX);
@@ -184,14 +156,5 @@ public class PlayerFragment extends DialogFragment {
         MediaPlayerService.startActionPrev(getActivity());
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
 
-    @Override
-    public void onDestroy() {
-        getActivity().unregisterReceiver(receiver);
-        super.onDestroy();
-    }
 }

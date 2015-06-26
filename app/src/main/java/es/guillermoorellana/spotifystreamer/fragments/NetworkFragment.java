@@ -1,14 +1,21 @@
 package es.guillermoorellana.spotifystreamer.fragments;
 
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.ArrayMap;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -174,4 +181,41 @@ public class NetworkFragment extends Fragment {
         });
     }
 
+    private static final int BIG_BITMAP_INDEX = 0;
+    private static final int ICON_BITMAP_INDEX = 1;
+
+    public void fetch(final String artUrl, final FetchListener listener) {
+        new AsyncTask<Void, Void, Bitmap[]>() {
+            @Override
+            protected Bitmap[] doInBackground(Void[] objects) {
+                Bitmap[] bitmaps;
+                try {
+                    RequestCreator load = Picasso.with(getActivity()).load(artUrl);
+                    bitmaps = new Bitmap[]{load.get(), load.resize(160, 160).get()};
+                } catch (IOException e) {
+                    return null;
+                }
+                return bitmaps;
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap[] bitmaps) {
+                if (bitmaps == null) {
+                    listener.onError(artUrl, new IllegalArgumentException("got null bitmaps"));
+                } else {
+                    listener.onFetched(artUrl,
+                            bitmaps[BIG_BITMAP_INDEX], bitmaps[ICON_BITMAP_INDEX]);
+                }
+            }
+        }.execute();
+    }
+
+
+    public static abstract class FetchListener {
+        public abstract void onFetched(String artUrl, Bitmap bigImage, Bitmap iconImage);
+
+        public void onError(String artUrl, Exception e) {
+            Log.e(TAG, "AlbumArtFetchListener: error while downloading " + artUrl, e);
+        }
+    }
 }
