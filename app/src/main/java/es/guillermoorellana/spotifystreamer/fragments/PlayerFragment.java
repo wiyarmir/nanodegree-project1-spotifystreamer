@@ -1,5 +1,6 @@
 package es.guillermoorellana.spotifystreamer.fragments;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -102,7 +103,6 @@ public class PlayerFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        ButterKnife.inject(this, dialog);
         return dialog;
     }
 
@@ -143,6 +143,8 @@ public class PlayerFragment extends DialogFragment {
             trackArtist.setText(currentTrack.artists.get(0).name);
             trackAlbum.setText(currentTrack.album.name);
 
+            // Placeholder does not scale... Makes the view size "bounce"
+            // https://github.com/square/picasso/issues/427
             Picasso.with(getActivity())
                     .load(currentTrack.album.images.get(0).url)
                     .placeholder(R.drawable.no_album_art)
