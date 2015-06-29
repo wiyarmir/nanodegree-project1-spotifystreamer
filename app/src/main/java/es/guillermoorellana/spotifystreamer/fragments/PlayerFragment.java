@@ -1,6 +1,5 @@
 package es.guillermoorellana.spotifystreamer.fragments;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -113,9 +112,6 @@ public class PlayerFragment extends DialogFragment {
         filter.addAction(MediaPlayerService.ACTION_UPDATE);
         receiver = new UpdateReceiver();
         getActivity().registerReceiver(receiver, filter);
-
-        Bundle args = getArguments();
-        int currentIndex = args.getInt(KEY_TRACK_INDEX);
 
         progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override

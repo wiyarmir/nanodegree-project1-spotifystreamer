@@ -128,11 +128,9 @@ public class MainActivity extends AppCompatActivity
         if (player == null) {
             player = new PlayerFragment();
         }
-
-        Bundle args = new Bundle();
-        args.putInt(PlayerFragment.KEY_TRACK_INDEX, track);
-        player.setArguments(args);
-        player.show(fm, PlayerFragment.TAG);
+        if (!player.isAdded()) {
+            player.show(fm, PlayerFragment.TAG);
+        }
         MediaPlayerService.startActionPlay(this, track);
     }
 }
