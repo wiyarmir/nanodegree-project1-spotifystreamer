@@ -6,4 +6,4 @@ Spotify Streamer project for the Android Nanodegree by Udacity
 
 # Screenshots
 
-Coming...
+![](https://raw.githubusercontent.com/wiyarmir/nanodegree-project1-spotifystreamer/master/screenshots/device-2015-06-19-140735.png)
